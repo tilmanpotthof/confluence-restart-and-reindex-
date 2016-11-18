@@ -21,4 +21,4 @@ function rebuild_search_index_request {
 
 echo
 echo "##### Trigger reindex through REST API"
-run_request_with_retries rebuild_search_index_request 6
+run_request_with_retries rebuild_search_index_request 60
