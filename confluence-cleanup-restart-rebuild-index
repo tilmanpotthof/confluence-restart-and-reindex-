@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+# uncomment for debugging
+# set -x
+
+source confluence-script-variables-and-functions.sh
+
+## CONFIG CHECKS
+## #############
+
+if [ ! -d $CONFLUENCE_HOME ]; then
+	exit_with_error "ERROR: Confluence home $CONFLUENCE_HOME not found"
+fi
+
+function check_confluence_is_running_request {
+	curl -o /dev/null \
+		--max-time $CURL_TIMEOUT \
+		--connect-timeout $CURL_TIMEOUT \
+		--silent \
+		--head \
+		--write-out '%{http_code}\n' \
+		$CONFLUENCE_LOGIN_URL
+}
+
+# START ACTUAL SCRIPT
+# ###################
+
+echo
+echo "##### Stop confluence and apache"
+service $APACHE_SERVICE stop
+service $CONFLUENCE_SERVICE stop	
+
+echo
+echo "##### clean cache and index folders"
+rm -rf $CONFLUENCE_HOME/index
+rm -rf $CONFLUENCE_HOME/journal
+rm -rf $CONFLUENCE_HOME/plugins-cache
+rm -rf $CONFLUENCE_HOME/plugins-osgi-cache
+rm -rf $CONFLUENCE_HOME/plugins-temp
+
+echo
+echo "##### clean apache cache if exists"
+if [ ! -d $APACHE_CACHE_LOCATION ]; then
+	echo "WARN: Apache cache folder $APACHE_CACHE_LOCATION not found"
+	htcacheclean -p$APACHE_CACHE_LOCATION
+fi
+
+echo
+echo "##### Start confluence"
+service $CONFLUENCE_SERVICE start
+
+echo
+echo "##### Check if confluence is running"
+run_request_with_retries check_confluence_is_running_request
+
+
+if [ $HTTP_STATUS != $EXPECTED_HTTP_STATUS ]; then
+	echo ""
+	echo "Got HTTP_STATUS: $HTTP_STATUS after $RETRIES_BEFORE_FAILURE retries, but expected $EXPECTED_HTTP_STATUS"
+	echo ""
+	exit 1
+fi
+
+./confluence-rebuild-index
+
+echo
+echo "##### Start apache"
+service $APACHE_SERVICE start
+

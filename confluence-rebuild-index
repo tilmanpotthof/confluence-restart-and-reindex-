@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# uncomment for debugging
+# set -x
+
+# ATTENTION: Confluence REST API must be enabled
+
+
+source confluence-script-variables-and-functions.sh
+
+function rebuild_search_index_request {
+	curl -o /dev/null \
+		--max-time $CURL_TIMEOUT \
+		--connect-timeout $CURL_TIMEOUT \
+		--silent \
+		--head \
+		--write-out '%{http_code}\n' \
+		-s -u $INDEX_USER:$INDEX_PASSWORD -X POST \
+		-H "X-Atlassian-Token: nocheck" $CONFLUENCE_REBUILD_INDEX_URL
+}
+
+echo
+echo "##### Trigger reindex through REST API"
+run_request_with_retries rebuild_search_index_request 6
