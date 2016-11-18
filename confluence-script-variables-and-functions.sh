@@ -4,7 +4,8 @@ INDEX_USER=rebuild-index
 INDEX_PASSWORD=rebuild-index
 
 APACHE_SERVICE=httpd
-APACHE_CACHE_LOCATION=/var/cache/apache
+APACHE_CACHE_LOCATION_HTTP=/diskcache/http
+APACHE_CACHE_LOCATION_HTTPS=/diskcache/https
 
 CONFLUENCE_SERVICE=confluence
 CONFLUENCE_HOME=/var/atlassian/application-data/confluence

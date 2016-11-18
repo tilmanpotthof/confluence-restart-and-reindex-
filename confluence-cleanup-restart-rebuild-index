@@ -28,7 +28,7 @@ function check_confluence_is_running_request {
 echo
 echo "##### Stop confluence and apache"
 service $APACHE_SERVICE stop
-service $CONFLUENCE_SERVICE stop	
+service $CONFLUENCE_SERVICE stop
 
 echo
 echo "##### clean cache and index folders"
@@ -40,9 +40,14 @@ rm -rf $CONFLUENCE_HOME/plugins-temp
 
 echo
 echo "##### clean apache cache if exists"
-if [ ! -d $APACHE_CACHE_LOCATION ]; then
-	echo "WARN: Apache cache folder $APACHE_CACHE_LOCATION not found"
-	htcacheclean -p$APACHE_CACHE_LOCATION
+if [ ! -d $APACHE_CACHE_LOCATION_HTTP ]; then
+	echo "WARN: Apache cache folder $APACHE_CACHE_LOCATION_HTTP not found"
+	htcacheclean -p$APACHE_CACHE_LOCATION_HTTP -l1K -v
+fi
+
+if [ ! -d $APACHE_CACHE_LOCATION_HTTPS ]; then
+	echo "WARN: Apache cache folder $APACHE_CACHE_LOCATION_HTTPS not found"
+	htcacheclean -p$APACHE_CACHE_LOCATION_HTTPS -l1K -v
 fi
 
 echo
@@ -66,4 +71,3 @@ fi
 echo
 echo "##### Start apache"
 service $APACHE_SERVICE start
-
